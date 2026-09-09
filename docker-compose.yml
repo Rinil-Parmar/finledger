@@ -1,0 +1,25 @@
+# Local development infrastructure for FinLedger.
+# Start with:  docker compose up -d
+# Stop with:   docker compose down        (add -v to also wipe the data volume)
+#
+# Credentials here are for LOCAL DEV ONLY. Real secrets never live in this file.
+services:
+  postgres:
+    image: postgres:16
+    container_name: finledger-postgres
+    environment:
+      POSTGRES_DB: finledger
+      POSTGRES_USER: finledger
+      POSTGRES_PASSWORD: finledger
+    ports:
+      - "5432:5432"
+    volumes:
+      - finledger-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finledger -d finledger"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  finledger-pgdata:

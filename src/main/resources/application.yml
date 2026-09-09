@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: finledger
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/finledger}
+    username: ${DB_USER:finledger}
+    password: ${DB_PASSWORD:finledger}
+
+  jpa:
+    # Flyway owns the schema. Hibernate is NOT allowed to create or alter tables;
+    # it only validates that our entities match the migrated schema at startup.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
