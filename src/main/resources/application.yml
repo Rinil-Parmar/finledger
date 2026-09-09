@@ -3,7 +3,7 @@ spring:
     name: finledger
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/finledger}
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/finledger}
     username: ${DB_USER:finledger}
     password: ${DB_PASSWORD:finledger}
 

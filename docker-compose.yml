@@ -12,7 +12,9 @@ services:
       POSTGRES_USER: finledger
       POSTGRES_PASSWORD: finledger
     ports:
-      - "5432:5432"
+      # Host port 5433 to avoid clashing with a native PostgreSQL on 5432.
+      # Inside the container Postgres still listens on 5432.
+      - "5433:5432"
     volumes:
       - finledger-pgdata:/var/lib/postgresql/data
     healthcheck:
