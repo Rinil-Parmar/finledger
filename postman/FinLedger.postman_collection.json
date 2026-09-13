@@ -1,0 +1,232 @@
+{
+  "info": {
+    "_postman_id": "b1f6c2a0-1d2e-4c3a-9f10-finledgerp1",
+    "name": "FinLedger API (Phase 1)",
+    "description": "Phase 1 endpoints: create account, deposit, withdraw, and read the derived balance. Run the requests top-to-bottom (or use the Collection Runner): 'Create account' captures the new account id into the {{externalId}} variable, which every later request reuses.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "externalId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/actuator/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["actuator", "health"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('database is UP', function () { pm.expect(pm.response.json().status).to.eql('UP'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create account",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"ownerName\":\"Rinil\",\"currency\":\"CAD\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/accounts",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "accounts"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+              "var json = pm.response.json();",
+              "pm.collectionVariables.set('externalId', json.externalId);",
+              "pm.test('externalId returned', function () { pm.expect(json.externalId).to.match(/^acc_/); });",
+              "pm.test('status is ACTIVE', function () { pm.expect(json.status).to.eql('ACTIVE'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deposit 1000",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\":1000.00,\"currency\":\"CAD\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/deposits",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "accounts", "{{externalId}}", "deposits"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('new balance is 1000', function () { pm.expect(pm.response.json().newBalance).to.eql(1000); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deposit 500",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\":500.00,\"currency\":\"CAD\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/deposits",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "accounts", "{{externalId}}", "deposits"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('new balance is 1500', function () { pm.expect(pm.response.json().newBalance).to.eql(1500); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get balance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/balance",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "accounts", "{{externalId}}", "balance"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('balance is 1500', function () { pm.expect(pm.response.json().balance).to.eql(1500); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Withdraw 300",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\":300.00,\"currency\":\"CAD\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/withdrawals",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "accounts", "{{externalId}}", "withdrawals"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('new balance is 1200', function () { pm.expect(pm.response.json().newBalance).to.eql(1200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Withdraw beyond balance (expect 400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\":99999.00,\"currency\":\"CAD\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/withdrawals",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "accounts", "{{externalId}}", "withdrawals"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('rejected with 400', function () { pm.response.to.have.status(400); });",
+              "pm.test('message mentions insufficient funds', function () { pm.expect(pm.response.json().message.toLowerCase()).to.include('insufficient'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Negative deposit (expect 400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"amount\":-5.00,\"currency\":\"CAD\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/deposits",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "accounts", "{{externalId}}", "deposits"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('rejected with 400', function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
