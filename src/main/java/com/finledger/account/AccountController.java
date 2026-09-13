@@ -43,11 +43,14 @@ public class AccountController {
 
     @PostMapping("/{externalId}/deposits")
     @ResponseStatus(HttpStatus.CREATED)
-    public DepositResponse deposit(@PathVariable String externalId,
-                                   @Valid @RequestBody DepositRequest request) {
-        CashService.DepositResult result = cashService.deposit(externalId, request.amount(), request.currency());
-        return new DepositResponse(
-                result.journalReference(), result.accountExternalId(), result.amount(), result.newBalance());
+    public MovementResponse deposit(@PathVariable String externalId, @Valid @RequestBody MoneyRequest request) {
+        return MovementResponse.from(cashService.deposit(externalId, request.amount(), request.currency()));
+    }
+
+    @PostMapping("/{externalId}/withdrawals")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MovementResponse withdraw(@PathVariable String externalId, @Valid @RequestBody MoneyRequest request) {
+        return MovementResponse.from(cashService.withdraw(externalId, request.amount(), request.currency()));
     }
 
     // --- request / response bodies ---
@@ -63,14 +66,18 @@ public class AccountController {
         }
     }
 
-    public record DepositRequest(
+    /** Shared body for deposits and withdrawals. */
+    public record MoneyRequest(
             @NotNull(message = "amount is required")
             @Positive(message = "amount must be positive") BigDecimal amount,
             @NotBlank(message = "currency is required") String currency) {
     }
 
-    public record DepositResponse(String journalReference, String externalId,
-                                  BigDecimal amount, BigDecimal newBalance) {
+    public record MovementResponse(String journalReference, String externalId,
+                                   BigDecimal amount, BigDecimal newBalance) {
+        static MovementResponse from(CashService.CashMovementResult r) {
+            return new MovementResponse(r.journalReference(), r.accountExternalId(), r.amount(), r.newBalance());
+        }
     }
 
     public record BalanceResponse(String externalId, BigDecimal balance, String currency) {
