@@ -64,6 +64,12 @@ Run the tests (starts a throwaway PostgreSQL container automatically — Docker 
 ./mvnw verify
 ```
 
+## Testing the API with Postman
+
+A ready-to-run Postman collection (with automatic tests) lives in [`postman/`](postman/).
+Start the app, import the two JSON files, and run the collection. See
+[`postman/README.md`](postman/README.md).
+
 ## Build roadmap
 
 | Phase | Focus                                                        | Status      |
