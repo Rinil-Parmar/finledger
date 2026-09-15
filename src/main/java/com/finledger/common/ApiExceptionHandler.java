@@ -20,6 +20,11 @@ public class ApiExceptionHandler {
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex) {
+        return build(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     @ExceptionHandler({BadRequestException.class, MethodArgumentNotValidException.class})
     public ResponseEntity<Map<String, Object>> handleBadRequest(Exception ex) {
         String message = (ex instanceof MethodArgumentNotValidException manve && manve.getFieldError() != null)
