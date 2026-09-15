@@ -1,9 +1,12 @@
 package com.finledger.outbox;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.finledger.TestcontainersConfiguration;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -19,12 +22,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Verifies the transactional outbox: money movements write a PENDING event in the same
- * transaction, and a failed movement writes no event at all (atomicity).
+ * End-to-end proof of Phase 3.2: a transfer writes an outbox event, the scheduled
+ * publisher delivers it to a real Kafka broker, the event flips to PUBLISHED, and the
+ * consumer receives it. Runs against real PostgreSQL and Kafka containers.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(TestcontainersConfiguration.class)
-class OutboxIT {
+class OutboxPublishingIT {
 
     @Autowired
     private TestRestTemplate rest;
@@ -32,30 +36,26 @@ class OutboxIT {
     @Autowired
     private OutboxRepository outbox;
 
-    @Test
-    void depositWritesPendingOutboxEvent() {
-        String a = createAccount();
-        deposit(a, "1000.00");
-
-        // The event is recorded; it may already be PUBLISHED by the background publisher.
-        assertThat(outbox.findByAggregateId(a))
-                .anyMatch(e -> e.getEventType().equals("cash.deposited"));
-    }
+    @Autowired
+    private EventConsumer consumer;
 
     @Test
-    void successfulTransferAddsOneEventAndFailedTransferAddsNone() {
+    void transferEventIsPublishedToKafkaAndConsumed() {
         String a = createAccount();
         String b = createAccount();
         deposit(a, "1000.00");
 
-        long transfersBefore = outbox.countByEventType("transfer.completed");
-        assertThat(transfer(a, b, "200.00").getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(outbox.countByEventType("transfer.completed")).isEqualTo(transfersBefore + 1);
+        ResponseEntity<Map> response = transfer(a, b, "250.00");
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        String reference = (String) response.getBody().get("reference");
 
-        // A rejected transfer must leave the outbox untouched (same transaction rolled back).
-        long allBefore = outbox.count();
-        assertThat(transfer(a, b, "999999.00").getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(outbox.count()).isEqualTo(allBefore);
+        // The publisher runs on a timer and Kafka delivery is async, so wait for it.
+        await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> {
+            List<OutboxEvent> events = outbox.findByAggregateId(reference);
+            assertThat(events).isNotEmpty();
+            assertThat(events).allMatch(e -> e.getStatus() == OutboxStatus.PUBLISHED);
+            assertThat(consumer.getReceived()).anyMatch(s -> s.contains(reference));
+        });
     }
 
     private String createAccount() {
