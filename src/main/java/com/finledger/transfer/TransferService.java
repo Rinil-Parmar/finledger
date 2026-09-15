@@ -10,8 +10,10 @@ import com.finledger.ledger.JournalType;
 import com.finledger.ledger.LedgerAccount;
 import com.finledger.ledger.LedgerService;
 import com.finledger.ledger.PostingLine;
+import com.finledger.outbox.OutboxService;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,12 +29,14 @@ public class TransferService {
     private final AccountService accountService;
     private final LedgerService ledgerService;
     private final TransferRepository transfers;
+    private final OutboxService outbox;
 
     public TransferService(AccountService accountService, LedgerService ledgerService,
-                           TransferRepository transfers) {
+                           TransferRepository transfers, OutboxService outbox) {
         this.accountService = accountService;
         this.ledgerService = ledgerService;
         this.transfers = transfers;
+        this.outbox = outbox;
     }
 
     @Transactional
@@ -69,6 +73,11 @@ public class TransferService {
         Transfer transfer = transfers.save(new Transfer(
                 newReference(), source.getId(), dest.getId(), amount, currency,
                 TransferStatus.COMPLETED, journal.getId()));
+
+        // Same transaction as the money movement: the event can never be lost or orphaned.
+        outbox.append("transfer", transfer.getReference(), "transfer.completed", Map.of(
+                "reference", transfer.getReference(), "source", sourceExternalId,
+                "destination", destExternalId, "amount", amount, "currency", currency));
 
         return new TransferResult(
                 transfer.getReference(), sourceExternalId, destExternalId, amount,
