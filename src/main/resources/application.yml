@@ -19,6 +19,26 @@ spring:
     enabled: true
     baseline-on-migrate: false
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+    consumer:
+      group-id: finledger
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+# FinLedger-specific settings.
+finledger:
+  outbox:
+    topic: finledger.events
+    # How often the publisher drains PENDING outbox rows to Kafka.
+    poll-interval-ms: 1000
+    batch-size: 100
+
 management:
   endpoints:
     web:
