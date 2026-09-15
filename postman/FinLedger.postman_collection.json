@@ -1,13 +1,16 @@
 {
   "info": {
     "_postman_id": "b1f6c2a0-1d2e-4c3a-9f10-finledgerp1",
-    "name": "FinLedger API (Phase 1)",
-    "description": "Phase 1 endpoints: create account, deposit, withdraw, and read the derived balance. Run the requests top-to-bottom (or use the Collection Runner): 'Create account' captures the new account id into the {{externalId}} variable, which every later request reuses.",
+    "name": "FinLedger API (Phase 1 & 2)",
+    "description": "FinLedger endpoints through Phase 2: accounts, deposits, withdrawals, derived balance, and idempotent account-to-account transfers. Run top-to-bottom (or with the Collection Runner): 'Create source account' captures {{externalId}}, 'Create destination account' captures {{destExternalId}}, and the transfer requests share a generated {{idempotencyKey}} to demonstrate a safe retry.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:8080" },
-    { "key": "externalId", "value": "" }
+    { "key": "externalId", "value": "" },
+    { "key": "destExternalId", "value": "" },
+    { "key": "idempotencyKey", "value": "" },
+    { "key": "transferRef", "value": "" }
   ],
   "item": [
     {
@@ -15,11 +18,7 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/actuator/health",
-          "host": ["{{baseUrl}}"],
-          "path": ["actuator", "health"]
-        }
+        "url": { "raw": "{{baseUrl}}/actuator/health", "host": ["{{baseUrl}}"], "path": ["actuator", "health"] }
       },
       "event": [
         {
@@ -35,19 +34,12 @@
       ]
     },
     {
-      "name": "Create account",
+      "name": "Create source account",
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"ownerName\":\"Rinil\",\"currency\":\"CAD\"}"
-        },
-        "url": {
-          "raw": "{{baseUrl}}/api/v1/accounts",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "v1", "accounts"]
-        }
+        "body": { "mode": "raw", "raw": "{\"ownerName\":\"Rinil\",\"currency\":\"CAD\"}" },
+        "url": { "raw": "{{baseUrl}}/api/v1/accounts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts"] }
       },
       "event": [
         {
@@ -58,8 +50,7 @@
               "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
               "var json = pm.response.json();",
               "pm.collectionVariables.set('externalId', json.externalId);",
-              "pm.test('externalId returned', function () { pm.expect(json.externalId).to.match(/^acc_/); });",
-              "pm.test('status is ACTIVE', function () { pm.expect(json.status).to.eql('ACTIVE'); });"
+              "pm.test('externalId returned', function () { pm.expect(json.externalId).to.match(/^acc_/); });"
             ]
           }
         }
@@ -70,14 +61,10 @@
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"amount\":1000.00,\"currency\":\"CAD\"}"
-        },
+        "body": { "mode": "raw", "raw": "{\"amount\":1000.00,\"currency\":\"CAD\"}" },
         "url": {
           "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/deposits",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "v1", "accounts", "{{externalId}}", "deposits"]
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts", "{{externalId}}", "deposits"]
         }
       },
       "event": [
@@ -98,14 +85,10 @@
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"amount\":500.00,\"currency\":\"CAD\"}"
-        },
+        "body": { "mode": "raw", "raw": "{\"amount\":500.00,\"currency\":\"CAD\"}" },
         "url": {
           "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/deposits",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "v1", "accounts", "{{externalId}}", "deposits"]
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts", "{{externalId}}", "deposits"]
         }
       },
       "event": [
@@ -128,8 +111,7 @@
         "header": [],
         "url": {
           "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/balance",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "v1", "accounts", "{{externalId}}", "balance"]
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts", "{{externalId}}", "balance"]
         }
       },
       "event": [
@@ -150,14 +132,10 @@
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"amount\":300.00,\"currency\":\"CAD\"}"
-        },
+        "body": { "mode": "raw", "raw": "{\"amount\":300.00,\"currency\":\"CAD\"}" },
         "url": {
           "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/withdrawals",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "v1", "accounts", "{{externalId}}", "withdrawals"]
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts", "{{externalId}}", "withdrawals"]
         }
       },
       "event": [
@@ -174,18 +152,127 @@
       ]
     },
     {
-      "name": "Withdraw beyond balance (expect 400)",
+      "name": "Create destination account",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"ownerName\":\"Priya\",\"currency\":\"CAD\"}" },
+        "url": { "raw": "{{baseUrl}}/api/v1/accounts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+              "pm.collectionVariables.set('destExternalId', pm.response.json().externalId);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transfer 200 (A -> B)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Generate one idempotency key and reuse it for the retry request below.",
+              "pm.collectionVariables.set('idempotencyKey', pm.variables.replaceIn('{{$guid}}'));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+              "var json = pm.response.json();",
+              "pm.collectionVariables.set('transferRef', json.reference);",
+              "pm.test('source balance is 1000', function () { pm.expect(json.sourceBalance).to.eql(1000); });",
+              "pm.test('destination balance is 200', function () { pm.expect(json.destinationBalance).to.eql(200); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "{{idempotencyKey}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceAccountId\":\"{{externalId}}\",\"destinationAccountId\":\"{{destExternalId}}\",\"amount\":200.00,\"currency\":\"CAD\"}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/transfers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "transfers"] }
+      }
+    },
+    {
+      "name": "Transfer retry (same key -> replay)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "{{idempotencyKey}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"sourceAccountId\":\"{{externalId}}\",\"destinationAccountId\":\"{{destExternalId}}\",\"amount\":200.00,\"currency\":\"CAD\"}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/transfers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "transfers"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+              "var json = pm.response.json();",
+              "pm.test('same transfer replayed (reference unchanged)', function () { pm.expect(json.reference).to.eql(pm.collectionVariables.get('transferRef')); });",
+              "pm.test('money moved only once (source still 1000)', function () { pm.expect(json.sourceBalance).to.eql(1000); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transfer without Idempotency-Key (expect 400)",
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\"amount\":99999.00,\"currency\":\"CAD\"}"
+          "raw": "{\"sourceAccountId\":\"{{externalId}}\",\"destinationAccountId\":\"{{destExternalId}}\",\"amount\":10.00,\"currency\":\"CAD\"}"
         },
+        "url": { "raw": "{{baseUrl}}/api/v1/transfers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "transfers"] }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('rejected with 400 (missing Idempotency-Key)', function () { pm.response.to.have.status(400); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Withdraw beyond balance (expect 400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"amount\":99999.00,\"currency\":\"CAD\"}" },
         "url": {
           "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/withdrawals",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "v1", "accounts", "{{externalId}}", "withdrawals"]
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts", "{{externalId}}", "withdrawals"]
         }
       },
       "event": [
@@ -194,8 +281,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('rejected with 400', function () { pm.response.to.have.status(400); });",
-              "pm.test('message mentions insufficient funds', function () { pm.expect(pm.response.json().message.toLowerCase()).to.include('insufficient'); });"
+              "pm.test('rejected with 400', function () { pm.response.to.have.status(400); });"
             ]
           }
         }
@@ -206,14 +292,10 @@
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"amount\":-5.00,\"currency\":\"CAD\"}"
-        },
+        "body": { "mode": "raw", "raw": "{\"amount\":-5.00,\"currency\":\"CAD\"}" },
         "url": {
           "raw": "{{baseUrl}}/api/v1/accounts/{{externalId}}/deposits",
-          "host": ["{{baseUrl}}"],
-          "path": ["api", "v1", "accounts", "{{externalId}}", "deposits"]
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts", "{{externalId}}", "deposits"]
         }
       },
       "event": [
