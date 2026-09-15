@@ -11,8 +11,10 @@ import com.finledger.ledger.LedgerAccount;
 import com.finledger.ledger.LedgerAccountRepository;
 import com.finledger.ledger.LedgerService;
 import com.finledger.ledger.PostingLine;
+import com.finledger.outbox.OutboxService;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * A deposit debits CASH (pool grows) and credits the customer wallet (we owe more).
  * A withdrawal is the mirror: debit the wallet (we owe less) and credit CASH (pool
- * shrinks) -- but only if the customer actually has the funds.
+ * shrinks) -- but only if the customer actually has the funds. Each movement also
+ * appends an outbox event within the same transaction.
  */
 @Service
 public class CashService {
@@ -31,12 +34,14 @@ public class CashService {
     private final AccountService accountService;
     private final LedgerAccountRepository ledgerAccounts;
     private final LedgerService ledgerService;
+    private final OutboxService outbox;
 
     public CashService(AccountService accountService, LedgerAccountRepository ledgerAccounts,
-                       LedgerService ledgerService) {
+                       LedgerService ledgerService, OutboxService outbox) {
         this.accountService = accountService;
         this.ledgerAccounts = ledgerAccounts;
         this.ledgerService = ledgerService;
+        this.outbox = outbox;
     }
 
     @Transactional
@@ -54,7 +59,11 @@ public class CashService {
                         new PostingLine(cash.getId(), EntryDirection.DEBIT, amount, currency),
                         new PostingLine(wallet.getId(), EntryDirection.CREDIT, amount, currency)));
 
-        return toResult(journal, externalId, amount, wallet);
+        CashMovementResult result = toResult(journal, externalId, amount, wallet);
+        outbox.append("account", externalId, "cash.deposited", Map.of(
+                "account", externalId, "amount", amount, "currency", currency,
+                "journalReference", result.journalReference(), "newBalance", result.newBalance()));
+        return result;
     }
 
     @Transactional
@@ -65,7 +74,6 @@ public class CashService {
         LedgerAccount cash = requireCash();
         LedgerAccount wallet = accountService.requireWallet(externalId);
 
-        // You cannot take out more than you have. Check first; if it fails, nothing is posted.
         BigDecimal balance = ledgerService.creditPositiveBalance(wallet.getId());
         if (amount.compareTo(balance) > 0) {
             throw new BadRequestException(
@@ -79,7 +87,11 @@ public class CashService {
                         new PostingLine(wallet.getId(), EntryDirection.DEBIT, amount, currency),
                         new PostingLine(cash.getId(), EntryDirection.CREDIT, amount, currency)));
 
-        return toResult(journal, externalId, amount, wallet);
+        CashMovementResult result = toResult(journal, externalId, amount, wallet);
+        outbox.append("account", externalId, "cash.withdrawn", Map.of(
+                "account", externalId, "amount", amount, "currency", currency,
+                "journalReference", result.journalReference(), "newBalance", result.newBalance()));
+        return result;
     }
 
     private CashMovementResult toResult(JournalEntry journal, String externalId, BigDecimal amount,
