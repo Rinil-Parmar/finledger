@@ -11,6 +11,8 @@ public interface OutboxRepository extends JpaRepository<OutboxEvent, UUID> {
 
     List<OutboxEvent> findByAggregateId(String aggregateId);
 
+    List<OutboxEvent> findTop50ByOrderByCreatedAtDesc();
+
     long countByEventType(String eventType);
 
     /**

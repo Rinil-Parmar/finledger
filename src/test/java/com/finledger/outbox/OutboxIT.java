@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.finledger.TestcontainersConfiguration;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -56,6 +57,19 @@ class OutboxIT {
         long allBefore = outbox.count();
         assertThat(transfer(a, b, "999999.00").getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(outbox.count()).isEqualTo(allBefore);
+    }
+
+    @Test
+    void outboxEventsEndpointReturnsEventsForAccount() {
+        String a = createAccount();
+        deposit(a, "500.00");
+
+        ResponseEntity<List> response = rest.getForEntity(
+                "/api/v1/outbox/events?aggregateId=" + a, List.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isNotEmpty();
+        assertThat(response.getBody().toString()).contains("cash.deposited");
     }
 
     private String createAccount() {
