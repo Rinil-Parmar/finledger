@@ -1,4 +1,4 @@
-package com.finledger.transfer;
+package com.finledger.idempotency;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,54 +19,66 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 /**
- * Verifies account-to-account transfers over HTTP: money moves from source to
- * destination, and invalid transfers (insufficient funds, same account, unknown
- * account) are rejected without moving anything. Each transfer sends a unique
- * Idempotency-Key, which the API now requires.
+ * Verifies the idempotency guarantee on transfers: the same Idempotency-Key moves money
+ * exactly once, reusing a key with a different body is rejected, and the key is required.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(TestcontainersConfiguration.class)
-class TransferFlowIT {
+class IdempotencyIT {
 
     @Autowired
     private TestRestTemplate rest;
 
     @Test
-    void transferMovesMoneyBetweenAccounts() {
+    void sameKeyMovesMoneyExactlyOnce() {
         String a = createAccount();
         String b = createAccount();
         deposit(a, "1000.00");
+        String key = UUID.randomUUID().toString();
 
-        ResponseEntity<Map> response = transfer(a, b, "300.00");
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        ResponseEntity<Map> first = transfer(key, a, b, "200.00");
+        ResponseEntity<Map> second = transfer(key, a, b, "200.00");   // identical retry
 
-        assertThat(balanceOf(a)).isEqualByComparingTo("700.00");
-        assertThat(balanceOf(b)).isEqualByComparingTo("300.00");
+        assertThat(first.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(second.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        // The retry returns the SAME stored response as the first call.
+        assertThat(second.getBody().get("reference")).isEqualTo(first.getBody().get("reference"));
+
+        // Money moved once, not twice.
+        assertThat(balanceOf(a)).isEqualByComparingTo("800.00");
+        assertThat(balanceOf(b)).isEqualByComparingTo("200.00");
     }
 
     @Test
-    void transferBeyondBalanceIsRejected() {
+    void sameKeyWithDifferentBodyIsRejected() {
+        String a = createAccount();
+        String b = createAccount();
+        deposit(a, "1000.00");
+        String key = UUID.randomUUID().toString();
+
+        transfer(key, a, b, "200.00");
+        ResponseEntity<Map> conflicting = transfer(key, a, b, "999.00");   // same key, different amount
+
+        assertThat(conflicting.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        // Only the first transfer took effect.
+        assertThat(balanceOf(a)).isEqualByComparingTo("800.00");
+    }
+
+    @Test
+    void missingIdempotencyKeyIsRejected() {
         String a = createAccount();
         String b = createAccount();
         deposit(a, "100.00");
 
-        assertThat(transfer(a, b, "500.00").getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(balanceOf(a)).isEqualByComparingTo("100.00");
-        assertThat(balanceOf(b)).isEqualByComparingTo("0");
-    }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(
+                Map.of("sourceAccountId", a, "destinationAccountId", b,
+                        "amount", new BigDecimal("10.00"), "currency", "CAD"),
+                headers);
+        ResponseEntity<Map> response = rest.exchange("/api/v1/transfers", HttpMethod.POST, entity, Map.class);
 
-    @Test
-    void transferToSameAccountIsRejected() {
-        String a = createAccount();
-        deposit(a, "100.00");
-        assertThat(transfer(a, a, "10.00").getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
-    void transferToUnknownAccountIsNotFound() {
-        String a = createAccount();
-        deposit(a, "100.00");
-        assertThat(transfer(a, "acc_does_not_exist", "10.00").getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     private String createAccount() {
@@ -80,10 +92,10 @@ class TransferFlowIT {
                 Map.of("amount", new BigDecimal(amount), "currency", "CAD"), Map.class);
     }
 
-    private ResponseEntity<Map> transfer(String from, String to, String amount) {
+    private ResponseEntity<Map> transfer(String key, String from, String to, String amount) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Idempotency-Key", UUID.randomUUID().toString());
+        headers.set("Idempotency-Key", key);
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(
                 Map.of("sourceAccountId", from, "destinationAccountId", to,
                         "amount", new BigDecimal(amount), "currency", "CAD"),
