@@ -309,6 +309,55 @@
           }
         }
       ]
+    },
+    {
+      "name": "Outbox events for the transfer",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/outbox/events?aggregateId={{transferRef}}",
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "outbox", "events"],
+          "query": [{ "key": "aggregateId", "value": "{{transferRef}}" }]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+              "var events = pm.response.json();",
+              "pm.test('the transfer.completed event exists', function () { pm.expect(events.some(function (e) { return e.eventType === 'transfer.completed'; })).to.be.true; });",
+              "// status flips PENDING -> PUBLISHED within ~1s as the publisher drains it to Kafka"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Consumed events (Kafka)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/outbox/consumed",
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "outbox", "consumed"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('response is a list of consumed events', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+            ]
+          }
+        }
+      ]
     }
   ]
 }

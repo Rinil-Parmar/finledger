@@ -50,6 +50,8 @@ newman run postman/FinLedger.postman_collection.json -e postman/FinLedger.local.
 | Transfer without Idempotency-Key | 400 |
 | Withdraw beyond balance | 400 |
 | Negative deposit | 400 |
+| Outbox events for the transfer | 200, contains a `transfer.completed` event (status flips to PUBLISHED within ~1s) |
+| Consumed events (Kafka) | 200, list of events the Kafka consumer received |
 
 > Re-running: the Collection Runner creates fresh accounts each run, so the expected
 > balances stay correct every time.

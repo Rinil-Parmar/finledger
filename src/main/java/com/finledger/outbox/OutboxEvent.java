@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -40,6 +41,10 @@ public class OutboxEvent {
 
     @Column(name = "attempts", nullable = false)
     private int attempts;
+
+    /** Set by the database default (NOW()); read-only from the application's side. */
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private Instant createdAt;
 
     protected OutboxEvent() {
         // required by JPA
@@ -80,5 +85,9 @@ public class OutboxEvent {
 
     public int getAttempts() {
         return attempts;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 }
