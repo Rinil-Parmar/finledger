@@ -7,7 +7,9 @@ import com.finledger.ledger.LedgerAccountRepository;
 import com.finledger.ledger.LedgerAccountType;
 import com.finledger.ledger.LedgerService;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +48,19 @@ public class AccountService {
     public Account requireAccount(String externalId) {
         return accounts.findByExternalId(externalId)
                 .orElseThrow(() -> new NotFoundException("Account not found: " + externalId));
+    }
+
+    /**
+     * Takes write locks on two accounts within the current transaction, always in a
+     * consistent (sorted) order so that concurrent transfers can never deadlock by
+     * locking the same two accounts in opposite orders.
+     */
+    public void lockAccountsInOrder(String externalIdA, String externalIdB) {
+        List<String> ordered = Stream.of(externalIdA, externalIdB).sorted().toList();
+        for (String externalId : ordered) {
+            accounts.findByExternalIdForUpdate(externalId)
+                    .orElseThrow(() -> new NotFoundException("Account not found: " + externalId));
+        }
     }
 
     /** The customer's spendable balance, derived from their wallet's ledger entries. */
