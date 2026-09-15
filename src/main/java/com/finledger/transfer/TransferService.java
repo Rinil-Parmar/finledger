@@ -41,6 +41,11 @@ public class TransferService {
         if (sourceExternalId != null && sourceExternalId.equals(destExternalId)) {
             throw new BadRequestException("Source and destination accounts must be different");
         }
+
+        // Lock both accounts before checking the balance, so concurrent transfers on the
+        // same account are serialized and can never overdraw it.
+        accountService.lockAccountsInOrder(sourceExternalId, destExternalId);
+
         Account source = accountService.requireAccount(sourceExternalId);
         Account dest = accountService.requireAccount(destExternalId);
         validate(source, dest, amount, currency);
