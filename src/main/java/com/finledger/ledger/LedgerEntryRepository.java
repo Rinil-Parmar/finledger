@@ -25,4 +25,19 @@ public interface LedgerEntryRepository extends JpaRepository<LedgerEntry, UUID> 
             WHERE e.ledgerAccountId = :ledgerAccountId
             """)
     BigDecimal deriveCreditPositiveBalance(@Param("ledgerAccountId") UUID ledgerAccountId);
+
+    /**
+     * Every movement of the pooled CASH account, with its journal reference. These are the
+     * deposits, withdrawals, and reversals that correspond to real bank settlements, which
+     * reconciliation compares against the external institution's records.
+     */
+    @Query(value = """
+            SELECT j.reference AS reference, le.direction AS direction,
+                   le.amount AS amount, le.currency AS currency
+            FROM ledger_entries le
+            JOIN journal_entries j ON le.journal_id = j.id
+            JOIN ledger_accounts la ON le.ledger_account_id = la.id
+            WHERE la.code = 'CASH'
+            """, nativeQuery = true)
+    List<CashMovementView> findCashMovements();
 }
