@@ -14,5 +14,7 @@ FinLedger is designed and why.
 | [0006](ADR-0006-concurrency-locking.md) | Concurrency-safe balances via pessimistic row locking | 2 |
 | [0007](ADR-0007-transactional-outbox.md) | Transactional outbox for reliable event publishing | 3 |
 | [0008](ADR-0008-at-least-once-kafka.md) | At-least-once Kafka delivery with idempotent consumers | 3 |
+| [0009](ADR-0009-compensating-reversals.md) | Compensating reversals instead of edits | 4 |
+| [0010](ADR-0010-reconciliation.md) | Reconciliation against an external settlement feed | 4 |
 
 Format: **Context → Decision → Why → Example → Consequences.**

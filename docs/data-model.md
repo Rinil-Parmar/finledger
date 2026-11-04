@@ -28,7 +28,13 @@ CASH (bank pool)  =   Σ CUSTOMER_CASH:<account>  (what we owe every customer)
 | `transfers` | First-class record of an account→account transfer | transfers |
 | `idempotency_records` | Remembers processed `Idempotency-Key`s | transfers |
 | `outbox_events` | Events awaiting (or already) published to Kafka | every money movement |
+| `external_transactions` | Simulated external-institution settlement feed | reconciliation input |
+| `reconciliation_runs` | One execution of reconciliation, with summary counts | reconciliation |
+| `reconciliation_breaks` | A discrepancy found by a run (typed) | reconciliation |
 | `app_metadata` | Trivial key/value from the Phase 0 smoke slice | migration seed |
+
+(Reversals don't add a table — a REVERSAL is just another `journal_entries` row whose
+`reverses_journal_id` points back at the journal it mirrors.)
 
 ### How they relate
 
@@ -174,3 +180,40 @@ money movement ── one transaction ──► ledger rows + outbox_events (PEN
 You can observe this over HTTP: `GET /api/v1/outbox/events?aggregateId=<ref>` shows the row
 flip from `PENDING` to `PUBLISHED`, and `GET /api/v1/outbox/consumed` shows what the consumer
 received.
+
+## Reversals (Phase 4)
+
+History is append-only, so a mistake is undone by posting a **mirror** journal, not by
+editing. A reversal is a normal `journal_entries` row of type `REVERSAL` whose
+`reverses_journal_id` points at the original, with its ledger lines swapped.
+
+```
+Original deposit (jnl_1):   Debit CASH 100 / Credit wallet 100
+Reversal (jnl_2, reverses_journal_id = jnl_1):
+                            Credit CASH 100 / Debit wallet 100
+Net effect: zero. Both journals remain. A journal can be reversed only once
+(we check whether any journal already points at it — no mutation needed).
+```
+
+## Reconciliation (Phase 4)
+
+Our ledger says what *we* think happened to cash; the external institution has its own
+settlement feed. Reconciliation matches the two **by reference** and records typed breaks.
+
+- `external_transactions` — the (simulated) external feed: `reference`, `direction`, `amount`.
+- A **run** compares every internal CASH movement against these records:
+
+```
+Internal CASH movements        External settlements        Result
+  jnl_1  DEBIT 1000       ==       jnl_1 DEBIT 1000     →   matched
+  jnl_2  DEBIT  300       →        (none)               →   MISSING_EXTERNAL
+  (none)                  ←        ext_9 DEBIT 200       →   MISSING_INTERNAL
+  jnl_3  DEBIT  500       ≠        jnl_3 DEBIT 999       →   AMOUNT_MISMATCH
+```
+
+- `reconciliation_runs` stores the run and its `total_matched` / `total_breaks` counts.
+- `reconciliation_breaks` stores each discrepancy (`break_type`, `reference`, the internal and
+  external amounts). Breaks are *surfaced* for operators to resolve — often via a reversal.
+
+Observe over HTTP: `POST /api/v1/reconciliation/external` to feed a record,
+`POST /api/v1/reconciliation/runs` to run, `GET /api/v1/reconciliation/runs/{id}/breaks` to list.

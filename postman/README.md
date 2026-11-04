@@ -52,6 +52,10 @@ newman run postman/FinLedger.postman_collection.json -e postman/FinLedger.local.
 | Negative deposit | 400 |
 | Outbox events for the transfer | 200, contains a `transfer.completed` event (status flips to PUBLISHED within ~1s) |
 | Consumed events (Kafka) | 200, list of events the Kafka consumer received |
+| Record external settlement (match) | 201, feeds a matching external record for the deposit |
+| Run reconciliation | 201, status `COMPLETED` |
+| List reconciliation breaks | 200, the matched deposit is NOT among the breaks |
+| Reverse the deposit | 201, returns a reversal reference |
 
 > Re-running: the Collection Runner creates fresh accounts each run, so the expected
 > balances stay correct every time.

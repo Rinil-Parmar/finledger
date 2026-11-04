@@ -10,7 +10,9 @@
     { "key": "externalId", "value": "" },
     { "key": "destExternalId", "value": "" },
     { "key": "idempotencyKey", "value": "" },
-    { "key": "transferRef", "value": "" }
+    { "key": "transferRef", "value": "" },
+    { "key": "depositJournalRef", "value": "" },
+    { "key": "reconRunId", "value": "" }
   ],
   "item": [
     {
@@ -74,6 +76,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+              "pm.collectionVariables.set('depositJournalRef', pm.response.json().journalReference);",
               "pm.test('new balance is 1000', function () { pm.expect(pm.response.json().newBalance).to.eql(1000); });"
             ]
           }
@@ -354,6 +357,108 @@
             "exec": [
               "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
               "pm.test('response is a list of consumed events', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Record external settlement (match)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"reference\":\"{{depositJournalRef}}\",\"direction\":\"DEBIT\",\"amount\":1000.00,\"currency\":\"CAD\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/reconciliation/external",
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "reconciliation", "external"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Run reconciliation",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/reconciliation/runs",
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "reconciliation", "runs"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+              "var run = pm.response.json();",
+              "pm.collectionVariables.set('reconRunId', run.runId);",
+              "pm.test('run completed', function () { pm.expect(run.status).to.eql('COMPLETED'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List reconciliation breaks",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/reconciliation/runs/{{reconRunId}}/breaks",
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "reconciliation", "runs", "{{reconRunId}}", "breaks"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+              "var breaks = pm.response.json();",
+              "pm.test('the matched deposit is NOT a break', function () { pm.expect(breaks.some(function (b) { return b.reference === pm.collectionVariables.get('depositJournalRef'); })).to.be.false; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reverse the deposit",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"reference\":\"{{depositJournalRef}}\"}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/reversals",
+          "host": ["{{baseUrl}}"], "path": ["api", "v1", "reversals"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('a reversal reference is returned', function () { pm.expect(pm.response.json().reversalReference).to.be.a('string'); });"
             ]
           }
         }
