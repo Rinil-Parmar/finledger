@@ -32,14 +32,23 @@ public class JournalEntry {
     @Column(name = "description")
     private String description;
 
+    /** For a REVERSAL journal, the id of the journal it reverses; null otherwise. */
+    @Column(name = "reverses_journal_id")
+    private UUID reversesJournalId;
+
     protected JournalEntry() {
         // required by JPA
     }
 
     public JournalEntry(String reference, JournalType type, String description) {
+        this(reference, type, description, null);
+    }
+
+    public JournalEntry(String reference, JournalType type, String description, UUID reversesJournalId) {
         this.reference = reference;
         this.type = type;
         this.description = description;
+        this.reversesJournalId = reversesJournalId;
     }
 
     public UUID getId() {
@@ -56,5 +65,9 @@ public class JournalEntry {
 
     public String getDescription() {
         return description;
+    }
+
+    public UUID getReversesJournalId() {
+        return reversesJournalId;
     }
 }
