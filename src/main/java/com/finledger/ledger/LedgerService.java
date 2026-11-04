@@ -28,6 +28,16 @@ public class LedgerService {
      */
     @Transactional
     public JournalEntry post(JournalType type, String description, List<PostingLine> lines) {
+        return post(type, description, lines, null);
+    }
+
+    /**
+     * Posts a balanced journal, optionally recording that it reverses another journal.
+     * Used by reversals so the new journal links back to the one it compensates.
+     */
+    @Transactional
+    public JournalEntry post(JournalType type, String description, List<PostingLine> lines,
+                             UUID reversesJournalId) {
         if (lines == null || lines.size() < 2) {
             throw new IllegalArgumentException("A journal must have at least two entries");
         }
@@ -50,7 +60,8 @@ public class LedgerService {
                     "Unbalanced journal: debits " + debits + " != credits " + credits);
         }
 
-        JournalEntry journal = journals.save(new JournalEntry(newReference(), type, description));
+        JournalEntry journal = journals.save(
+                new JournalEntry(newReference(), type, description, reversesJournalId));
         for (PostingLine line : lines) {
             entries.save(new LedgerEntry(
                     journal.getId(), line.ledgerAccountId(), line.direction(), line.amount(), line.currency()));
