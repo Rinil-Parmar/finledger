@@ -27,7 +27,8 @@ model with worked examples in **[docs/data-model.md](docs/data-model.md)**.
 - ✅ **Concurrency-safe balances** — row-level locking; parallel transfers can't overdraw (proven by a 20-thread test)
 - ✅ **Transactional outbox** — the DB commit and the "event to publish" are one atomic write
 - ✅ **At-least-once delivery to Kafka** — a background publisher drains the outbox; consumers are idempotent
-- ⬜ Reconciliation against an external institution + compensating reversals *(Phase 4)*
+- ✅ **Compensating reversals** — corrections post a mirror journal; history is never edited
+- ✅ **Reconciliation** — the internal ledger is checked against an external settlement feed, surfacing typed breaks
 
 ## Architecture
 
@@ -75,11 +76,15 @@ All under `http://localhost:8080`.
 | `POST /api/v1/accounts/{externalId}/deposits` | Deposit cash | body: `amount`, `currency` |
 | `POST /api/v1/accounts/{externalId}/withdrawals` | Withdraw cash | rejects insufficient funds |
 | `POST /api/v1/transfers` | Transfer between accounts | **requires `Idempotency-Key` header** |
+| `POST /api/v1/reversals` | Reverse a journal with a mirror | body: `reference` |
+| `POST /api/v1/reconciliation/external` | Record a (simulated) external settlement | body: `reference`, `direction`, `amount`, `currency` |
+| `POST /api/v1/reconciliation/runs` | Run reconciliation, return a summary | — |
+| `GET /api/v1/reconciliation/runs/{id}/breaks` | List the breaks a run found | — |
 | `GET /api/v1/outbox/events` | Inspect outbox events | optional `?aggregateId=` |
 | `GET /api/v1/outbox/consumed` | Events the Kafka consumer received | — |
 | `GET /actuator/health` | Health (incl. DB) | — |
 
-Errors use standard codes: `400` invalid input, `404` unknown account, `409` idempotency conflict.
+Errors use standard codes: `400` invalid input, `404` unknown account/journal, `409` conflict (idempotency or already-reversed).
 
 ## Quick start
 
@@ -108,7 +113,7 @@ A full worked example (create account → deposit → transfer → observe the K
 ./mvnw verify
 ```
 
-Runs the full suite (**18 integration tests**) against **real PostgreSQL and Kafka**
+Runs the full suite (**25 integration tests**) against **real PostgreSQL and Kafka**
 containers via Testcontainers — Docker must be running. GitHub Actions runs the same on
 every push.
 
@@ -126,7 +131,7 @@ See [`postman/README.md`](postman/README.md).
 | 1     | Append-only double-entry ledger + deposits/withdrawals + derived balances | ✅ done |
 | 2     | Transfers + idempotency + concurrency safety                 | ✅ done     |
 | 3     | Transactional outbox + Kafka delivery                        | ✅ done     |
-| 4     | Reconciliation + compensating reversals                      | ⬜ planned  |
-| 5+    | (Stretch) trading, security, observability, deployment       | ⬜ later    |
+| 4     | Compensating reversals + reconciliation                      | ✅ done     |
+| 5+    | (Stretch) frontend visualizer, security, observability, deployment | ⬜ later |
 
 Architecture decisions are recorded in [`docs/adrs/`](docs/adrs/).
