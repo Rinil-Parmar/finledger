@@ -40,4 +40,15 @@ public interface LedgerEntryRepository extends JpaRepository<LedgerEntry, UUID> 
             WHERE la.code = 'CASH'
             """, nativeQuery = true)
     List<CashMovementView> findCashMovements();
+
+    /** All ledger lines for one account, oldest first, with their journal reference (for the UI). */
+    @Query(value = """
+            SELECT j.reference AS reference, le.direction AS direction,
+                   le.amount AS amount, le.posted_at AS postedAt
+            FROM ledger_entries le
+            JOIN journal_entries j ON le.journal_id = j.id
+            WHERE le.ledger_account_id = :ledgerAccountId
+            ORDER BY le.posted_at
+            """, nativeQuery = true)
+    List<LedgerLineView> findLedgerLines(@Param("ledgerAccountId") UUID ledgerAccountId);
 }

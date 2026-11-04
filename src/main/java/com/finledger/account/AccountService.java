@@ -5,6 +5,8 @@ import com.finledger.ledger.EntryDirection;
 import com.finledger.ledger.LedgerAccount;
 import com.finledger.ledger.LedgerAccountRepository;
 import com.finledger.ledger.LedgerAccountType;
+import com.finledger.ledger.LedgerEntryRepository;
+import com.finledger.ledger.LedgerLineView;
 import com.finledger.ledger.LedgerService;
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,12 +20,14 @@ public class AccountService {
 
     private final AccountRepository accounts;
     private final LedgerAccountRepository ledgerAccounts;
+    private final LedgerEntryRepository ledgerEntries;
     private final LedgerService ledgerService;
 
     public AccountService(AccountRepository accounts, LedgerAccountRepository ledgerAccounts,
-                          LedgerService ledgerService) {
+                          LedgerEntryRepository ledgerEntries, LedgerService ledgerService) {
         this.accounts = accounts;
         this.ledgerAccounts = ledgerAccounts;
+        this.ledgerEntries = ledgerEntries;
         this.ledgerService = ledgerService;
     }
 
@@ -70,6 +74,22 @@ public class AccountService {
         return ledgerService.creditPositiveBalance(wallet.getId());
     }
 
+    /** All accounts with their derived balance (for the UI accounts list). */
+    @Transactional(readOnly = true)
+    public List<AccountSummary> listAccountSummaries() {
+        return accounts.findAll().stream()
+                .map(a -> new AccountSummary(a.getExternalId(), a.getOwnerName(), a.getCurrency(),
+                        a.getStatus().name(), balanceOf(a)))
+                .toList();
+    }
+
+    /** The ledger lines of a customer's wallet, oldest first (for the UI ledger explorer). */
+    @Transactional(readOnly = true)
+    public List<LedgerLineView> getLedgerLines(String externalId) {
+        LedgerAccount wallet = requireWallet(externalId);
+        return ledgerEntries.findLedgerLines(wallet.getId());
+    }
+
     public LedgerAccount requireWallet(String externalId) {
         return ledgerAccounts.findByCode(walletCode(externalId))
                 .orElseThrow(() -> new NotFoundException("Wallet ledger account missing for " + externalId));
@@ -78,5 +98,9 @@ public class AccountService {
     /** The chart-of-accounts code for a customer's wallet, e.g. CUSTOMER_CASH:acc_123. */
     public static String walletCode(String externalId) {
         return "CUSTOMER_CASH:" + externalId;
+    }
+
+    public record AccountSummary(String externalId, String ownerName, String currency,
+                                 String status, BigDecimal balance) {
     }
 }

@@ -1,11 +1,14 @@
 package com.finledger.account;
 
 import com.finledger.cash.CashService;
+import com.finledger.ledger.LedgerLineView;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,6 +35,17 @@ public class AccountController {
     public AccountResponse create(@Valid @RequestBody CreateAccountRequest request) {
         Account account = accountService.createAccount(request.ownerName(), request.currency());
         return AccountResponse.from(account);
+    }
+
+    @GetMapping
+    public List<AccountSummaryResponse> list() {
+        return accountService.listAccountSummaries().stream().map(AccountSummaryResponse::from).toList();
+    }
+
+    @GetMapping("/{externalId}/entries")
+    public List<LedgerLineResponse> entries(@PathVariable String externalId) {
+        accountService.requireAccount(externalId);   // 404 if the account does not exist
+        return accountService.getLedgerLines(externalId).stream().map(LedgerLineResponse::from).toList();
     }
 
     @GetMapping("/{externalId}/balance")
@@ -81,5 +95,18 @@ public class AccountController {
     }
 
     public record BalanceResponse(String externalId, BigDecimal balance, String currency) {
+    }
+
+    public record AccountSummaryResponse(String externalId, String ownerName, String currency,
+                                         String status, BigDecimal balance) {
+        static AccountSummaryResponse from(AccountService.AccountSummary s) {
+            return new AccountSummaryResponse(s.externalId(), s.ownerName(), s.currency(), s.status(), s.balance());
+        }
+    }
+
+    public record LedgerLineResponse(String reference, String direction, BigDecimal amount, Instant postedAt) {
+        static LedgerLineResponse from(LedgerLineView v) {
+            return new LedgerLineResponse(v.getReference(), v.getDirection(), v.getAmount(), v.getPostedAt());
+        }
     }
 }
