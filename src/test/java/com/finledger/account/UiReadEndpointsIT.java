@@ -1,4 +1,4 @@
-﻿package com.finledger.account;
+package com.finledger.account;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

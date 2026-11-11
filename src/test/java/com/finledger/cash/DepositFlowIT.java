@@ -2,6 +2,7 @@ package com.finledger.cash;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.finledger.TestSecurityConfig;
 import com.finledger.TestcontainersConfiguration;
 import java.math.BigDecimal;
 import java.util.Map;

@@ -1,4 +1,4 @@
-﻿package com.finledger.reconciliation;
+package com.finledger.reconciliation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

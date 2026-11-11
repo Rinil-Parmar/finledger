@@ -116,7 +116,9 @@ All under `http://localhost:8080`.
 
 | Method | Path | Purpose |
 |---|---|---|
-| `POST` | `/api/v1/accounts` | Create a customer account |
+| `POST` | `/api/v1/auth/register` | Register a new user (returns JWT) |
+| `POST` | `/api/v1/auth/login` | Login (returns JWT) |
+| `POST` | `/api/v1/accounts` | Create a customer account (ADMIN) |
 | `GET` | `/api/v1/accounts` | List all accounts |
 | `GET` | `/api/v1/accounts/{id}/balance` | Derived balance |
 | `GET` | `/api/v1/accounts/{id}/entries` | Journal entries for account |
@@ -131,7 +133,9 @@ All under `http://localhost:8080`.
 | `GET` | `/api/v1/outbox/consumed` | Events the Kafka consumer received |
 | `GET` | `/api/v1/ledger/totals` | Asset/liability totals with balance check |
 
-Errors: `400` invalid input, `404` unknown entity, `409` conflict (idempotency or already-reversed).
+Most endpoints require a `Authorization: Bearer <token>` header. Auth endpoints (`/auth/*`) are public. Admin-only endpoints: `POST /accounts`, `/outbox/*`, `/reconciliation/*`, `/reversals/*`.
+
+Errors: `400` invalid input, `401` missing/invalid token, `403` insufficient role, `404` unknown entity, `409` conflict (idempotency or already-reversed).
 
 ---
 
@@ -189,6 +193,7 @@ A ready-to-run Postman collection lives in [`postman/`](postman/). Start the app
 | 3 | Transactional outbox, Kafka delivery | Done |
 | 4 | Compensating reversals, reconciliation engine | Done |
 | 5 | Frontend: multi-page product website with live dashboard | Done |
+| 6 | JWT authentication with RBAC (USER/ADMIN roles) | Done |
 
 ---
 
@@ -198,4 +203,4 @@ See [docs/data-model.md](docs/data-model.md) for the full schema, worked example
 
 ---
 
-Built by **Rinil Parmar** - 30 integration tests, 8 Flyway migrations, 10 ADRs
+Built by **Rinil Parmar** - 30 integration tests, 9 Flyway migrations, 10 ADRs
