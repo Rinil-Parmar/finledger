@@ -1,4 +1,4 @@
-import type { Account, Totals, MovementResult, TransferResult } from "../types";
+import type { Account, Totals, MovementResult, TransferResult, LedgerEntry, OutboxEvent } from "../types";
 
 const BASE = "/api/v1";
 
@@ -53,4 +53,13 @@ export const api = {
         currency,
       }),
     }),
+
+  getLedgerEntries: (externalId: string) =>
+    http<LedgerEntry[]>(`/accounts/${externalId}/entries`),
+
+  getOutboxEvents: () =>
+    http<OutboxEvent[]>("/outbox/events"),
+
+  getConsumedEvents: () =>
+    http<string[]>("/outbox/consumed"),
 };
