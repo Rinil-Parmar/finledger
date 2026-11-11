@@ -25,12 +25,61 @@
   color-scheme: light;
 }
 
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0e12;
+    --bg-alt: #161a21;
+    --card: #1a1f28;
+    --ink: #e8ecf1;
+    --ink-2: #a3b1c6;
+    --muted: #5c6b7f;
+    --line: #252d3a;
+    --brand: #4d94ff;
+    --brand-hover: #6aa6ff;
+    --brand-soft: rgba(77, 148, 255, 0.12);
+    --brand-glow: rgba(77, 148, 255, 0.1);
+    --ok: #34d399;
+    --ok-bg: rgba(52, 211, 153, 0.1);
+    --warn: #fbbf24;
+    --warn-bg: rgba(251, 191, 36, 0.1);
+    --bad: #f87171;
+    --bad-bg: rgba(248, 113, 113, 0.1);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.3);
+    --shadow: 0 4px 16px rgba(0,0,0,0.2), 0 1px 3px rgba(0,0,0,0.15);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c0e12;
+  --bg-alt: #161a21;
+  --card: #1a1f28;
+  --ink: #e8ecf1;
+  --ink-2: #a3b1c6;
+  --muted: #5c6b7f;
+  --line: #252d3a;
+  --brand: #4d94ff;
+  --brand-hover: #6aa6ff;
+  --brand-soft: rgba(77, 148, 255, 0.12);
+  --brand-glow: rgba(77, 148, 255, 0.1);
+  --ok: #34d399;
+  --ok-bg: rgba(52, 211, 153, 0.1);
+  --warn: #fbbf24;
+  --warn-bg: rgba(251, 191, 36, 0.1);
+  --bad: #f87171;
+  --bad-bg: rgba(248, 113, 113, 0.1);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow: 0 4px 16px rgba(0,0,0,0.2), 0 1px 3px rgba(0,0,0,0.15);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
+  color-scheme: dark;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   font-size: 15px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -205,8 +254,12 @@ body {
   padding: 14px 32px; background: var(--card);
   border-bottom: 1px solid var(--line);
   position: sticky; top: 0; z-index: 100;
-  backdrop-filter: blur(8px); background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px); background: rgba(255,255,255,0.85);
 }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .topbar { background: rgba(26, 31, 40, 0.85); }
+}
+:root[data-theme="dark"] .topbar { background: rgba(26, 31, 40, 0.85); }
 .topbar-logo {
   font-size: 18px; font-weight: 800; letter-spacing: -0.03em;
   border: none; background: none; color: var(--ink); cursor: pointer; padding: 0;
@@ -306,6 +359,12 @@ body {
 .inv-big { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .inv-center { padding: 0 8px; }
 .inv-eq { font-size: 28px; color: var(--muted); font-weight: 300; }
+.inv-badge {
+  font-size: 11px; font-weight: 700; padding: 5px 14px;
+  border-radius: 999px; background: var(--ok-bg); color: var(--ok);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.inv-badge.unbalanced { background: var(--bad-bg); color: var(--bad); }
 
 .create-section { display: flex; gap: 10px; margin-bottom: 28px; }
 .create-input {
@@ -525,6 +584,48 @@ body {
 .ev-consumed { text-align: center; }
 .ev-check { color: var(--ok); font-weight: 700; font-size: 16px; }
 .ev-dash { color: var(--muted); }
+
+/* ═══════════════════════════════════════
+   DARK MODE OVERRIDES
+   ═══════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .l-gradient {
+    background: linear-gradient(135deg, #4d94ff 0%, #a78bfa 100%);
+    -webkit-background-clip: text; background-clip: text;
+  }
+  :root:not([data-theme="light"]) .l-glow {
+    background: radial-gradient(ellipse at center, rgba(77, 148, 255, 0.12) 0%, transparent 65%);
+  }
+  :root:not([data-theme="light"]) .dh-avatar {
+    background: linear-gradient(135deg, #4d94ff 0%, #a78bfa 100%);
+  }
+  :root:not([data-theme="light"]) .l-cta {
+    background: var(--ink-2); color: var(--bg);
+  }
+  :root:not([data-theme="light"]) input,
+  :root:not([data-theme="light"]) select {
+    color: var(--ink);
+    background: var(--card);
+  }
+}
+:root[data-theme="dark"] .l-gradient {
+  background: linear-gradient(135deg, #4d94ff 0%, #a78bfa 100%);
+  -webkit-background-clip: text; background-clip: text;
+}
+:root[data-theme="dark"] .l-glow {
+  background: radial-gradient(ellipse at center, rgba(77, 148, 255, 0.12) 0%, transparent 65%);
+}
+:root[data-theme="dark"] .dh-avatar {
+  background: linear-gradient(135deg, #4d94ff 0%, #a78bfa 100%);
+}
+:root[data-theme="dark"] .l-cta {
+  background: var(--ink-2); color: var(--bg);
+}
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select {
+  color: var(--ink);
+  background: var(--card);
+}
 
 /* ═══════════════════════════════════════
    RESPONSIVE

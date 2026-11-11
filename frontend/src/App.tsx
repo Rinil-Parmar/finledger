@@ -329,6 +329,9 @@ export default function App() {
                   <div className="inv-label">&Sigma; Wallets (Liabilities)</div>
                   <div className="inv-big"><AnimatedMoney value={totals.totalLiabilities} /></div>
                 </div>
+                <span className={`inv-badge ${totals.balanced ? "" : "unbalanced"}`}>
+                  {totals.balanced ? "balanced" : "UNBALANCED"}
+                </span>
               </div>
             )}
 
