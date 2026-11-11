@@ -1,4 +1,4 @@
-﻿package com.finledger.transfer;
+package com.finledger.transfer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -1,4 +1,4 @@
-﻿package com.finledger.idempotency;
+package com.finledger.idempotency;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

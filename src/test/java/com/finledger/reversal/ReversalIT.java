@@ -1,4 +1,4 @@
-﻿package com.finledger.reversal;
+package com.finledger.reversal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

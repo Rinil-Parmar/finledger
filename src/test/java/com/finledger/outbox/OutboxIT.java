@@ -1,4 +1,4 @@
-﻿package com.finledger.outbox;
+package com.finledger.outbox;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
