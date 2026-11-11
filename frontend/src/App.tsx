@@ -256,6 +256,109 @@ export default function App() {
         </div>
       </section>
 
+      {/* How Banking Works */}
+      <section className="l-banking">
+        <div className="l-section-label">How Banks &amp; Fintechs Actually Work</div>
+        <p className="l-banking-intro">
+          Every fintech &mdash; Wealthsimple, Groww, Stripe, your bank &mdash; runs a double-entry ledger
+          underneath. Here's what really happens when you move money.
+        </p>
+
+        <div className="l-examples">
+          {/* Example 1: Deposit */}
+          <div className="l-example">
+            <div className="l-ex-header">
+              <span className="l-ex-icon dep">$</span>
+              <div>
+                <div className="l-ex-title">Aditi deposits $500 on Wealthsimple</div>
+                <div className="l-ex-sub">Cash enters the system &mdash; two entries are created atomically</div>
+              </div>
+            </div>
+            <div className="l-ex-ledger">
+              <div className="l-ex-row">
+                <span className="l-ex-account">Cash Pool</span>
+                <span className="l-ex-dir debit">DEBIT</span>
+                <span className="l-ex-amt">$500.00</span>
+                <span className="l-ex-meaning">Bank's assets increase</span>
+              </div>
+              <div className="l-ex-row">
+                <span className="l-ex-account">Aditi's Wallet</span>
+                <span className="l-ex-dir credit">CREDIT</span>
+                <span className="l-ex-amt">$500.00</span>
+                <span className="l-ex-meaning">Bank now owes Aditi $500</span>
+              </div>
+              <div className="l-ex-invariant">
+                <code>Assets ($500) = Liabilities ($500)</code>
+                <span className="l-ex-check">&check; Balanced</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Example 2: Transfer */}
+          <div className="l-example">
+            <div className="l-ex-header">
+              <span className="l-ex-icon txfr">&harr;</span>
+              <div>
+                <div className="l-ex-title">Aditi sends $200 to Rinil via UPI / Interac</div>
+                <div className="l-ex-sub">Money moves between wallets &mdash; cash pool unchanged, four entries total</div>
+              </div>
+            </div>
+            <div className="l-ex-ledger">
+              <div className="l-ex-row">
+                <span className="l-ex-account">Aditi's Wallet</span>
+                <span className="l-ex-dir debit">DEBIT</span>
+                <span className="l-ex-amt">$200.00</span>
+                <span className="l-ex-meaning">Aditi's liability decreases</span>
+              </div>
+              <div className="l-ex-row">
+                <span className="l-ex-account">Rinil's Wallet</span>
+                <span className="l-ex-dir credit">CREDIT</span>
+                <span className="l-ex-amt">$200.00</span>
+                <span className="l-ex-meaning">Rinil's liability increases</span>
+              </div>
+              <div className="l-ex-invariant">
+                <code>Σ Wallets ($500) = Cash Pool ($500)</code>
+                <span className="l-ex-check">&check; Still balanced</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Example 3: Groww stock buy */}
+          <div className="l-example">
+            <div className="l-ex-header">
+              <span className="l-ex-icon stock">&#9650;</span>
+              <div>
+                <div className="l-ex-title">Buying 10 shares on Groww / Wealthsimple Trade</div>
+                <div className="l-ex-sub">Same pattern &mdash; cash moves out, securities move in</div>
+              </div>
+            </div>
+            <div className="l-ex-ledger">
+              <div className="l-ex-row">
+                <span className="l-ex-account">Cash Account</span>
+                <span className="l-ex-dir debit">DEBIT</span>
+                <span className="l-ex-amt">$1,500.00</span>
+                <span className="l-ex-meaning">Cash leaves the account</span>
+              </div>
+              <div className="l-ex-row">
+                <span className="l-ex-account">Securities Holding</span>
+                <span className="l-ex-dir credit">CREDIT</span>
+                <span className="l-ex-amt">$1,500.00</span>
+                <span className="l-ex-meaning">10 shares @ $150 acquired</span>
+              </div>
+              <div className="l-ex-invariant">
+                <code>Cash + Securities = Total Holdings</code>
+                <span className="l-ex-check">&check; Always balanced</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="l-banking-footer">
+          <strong>FinLedger implements this exact pattern.</strong> Every operation you perform in the dashboard
+          creates real double-entry journal entries &mdash; the same way production fintech systems do.
+        </div>
+      </section>
+
       {/* Architecture */}
       <section className="l-arch">
         <div className="l-section-label">Architecture</div>
