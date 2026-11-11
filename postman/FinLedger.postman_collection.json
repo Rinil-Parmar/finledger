@@ -159,7 +159,7 @@
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\"ownerName\":\"Priya\",\"currency\":\"CAD\"}" },
+        "body": { "mode": "raw", "raw": "{\"ownerName\":\"Aditi\",\"currency\":\"CAD\"}" },
         "url": { "raw": "{{baseUrl}}/api/v1/accounts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts"] }
       },
       "event": [

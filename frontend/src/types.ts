@@ -27,3 +27,19 @@ export interface TransferResult {
   sourceBalance: number;
   destinationBalance: number;
 }
+
+export interface LedgerEntry {
+  reference: string;
+  direction: "DEBIT" | "CREDIT";
+  amount: number;
+  postedAt: string;
+}
+
+export interface OutboxEvent {
+  id: string;
+  aggregateType: string;
+  aggregateId: string;
+  eventType: string;
+  status: "PENDING" | "PUBLISHED";
+  attempts: number;
+}
