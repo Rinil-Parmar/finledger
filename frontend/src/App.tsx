@@ -193,6 +193,10 @@ export default function App() {
             </div>
             <h3>Double-Entry Ledger</h3>
             <p>Every transaction creates balanced journal entries. Debits always equal credits. Balance is derived, never stored.</p>
+            <div className="l-card-eq">
+              <div className="eq-line"><span className="eq-label">Invariant</span><code>{"Σ debits = Σ credits  ∀ journal"}</code></div>
+              <div className="eq-line"><span className="eq-label">Balance</span><code>{"balance(a) = Σ credits(a) − Σ debits(a)"}</code></div>
+            </div>
           </div>
           <div className="l-card">
             <div className="l-card-icon">
@@ -200,6 +204,10 @@ export default function App() {
             </div>
             <h3>Append-Only Immutability</h3>
             <p>No row is ever updated or deleted. Corrections happen through compensating reversals &mdash; a full audit trail forever.</p>
+            <div className="l-card-eq">
+              <div className="eq-line"><span className="eq-label">Rule</span><code>{"INSERT only — no UPDATE, no DELETE"}</code></div>
+              <div className="eq-line"><span className="eq-label">Reversal</span><code>{"reverse(tx) → new compensating entry"}</code></div>
+            </div>
           </div>
           <div className="l-card">
             <div className="l-card-icon">
@@ -207,6 +215,10 @@ export default function App() {
             </div>
             <h3>Idempotent Transfers</h3>
             <p>Every transfer carries a unique key. Retry the same request 100 times &mdash; money moves exactly once. No double-spend.</p>
+            <div className="l-card-eq">
+              <div className="eq-line"><span className="eq-label">Property</span><code>{"f(x) = f(f(x))  — exactly-once"}</code></div>
+              <div className="eq-line"><span className="eq-label">SQL</span><code>{"INSERT … ON CONFLICT (key) DO NOTHING"}</code></div>
+            </div>
           </div>
           <div className="l-card">
             <div className="l-card-icon">
@@ -214,6 +226,10 @@ export default function App() {
             </div>
             <h3>Transactional Outbox</h3>
             <p>Events are written in the same database transaction as the business change, then published to Kafka. Zero lost writes.</p>
+            <div className="l-card-eq">
+              <div className="eq-line"><span className="eq-label">Guarantee</span><code>{"BEGIN → write(ledger) + write(outbox) → COMMIT"}</code></div>
+              <div className="eq-line"><span className="eq-label">Delivery</span><code>{"at-least-once → idempotent consumer"}</code></div>
+            </div>
           </div>
           <div className="l-card">
             <div className="l-card-icon">
@@ -221,6 +237,10 @@ export default function App() {
             </div>
             <h3>Reconciliation Engine</h3>
             <p>Compare internal ledger against external settlement feeds. Detects missing, mismatched, and directional breaks automatically.</p>
+            <div className="l-card-eq">
+              <div className="eq-line"><span className="eq-label">Match</span><code>{"internal ∩ external → {matched, break}"}</code></div>
+              <div className="eq-line"><span className="eq-label">Breaks</span><code>{"missing | amount_mismatch | direction_mismatch"}</code></div>
+            </div>
           </div>
           <div className="l-card">
             <div className="l-card-icon">
@@ -228,6 +248,10 @@ export default function App() {
             </div>
             <h3>Concurrency Safe</h3>
             <p>Pessimistic locking with ordered acquisition prevents deadlocks. 20 concurrent transfers &mdash; zero overdrafts.</p>
+            <div className="l-card-eq">
+              <div className="eq-line"><span className="eq-label">Lock</span><code>{"SELECT … FOR UPDATE ORDER BY id"}</code></div>
+              <div className="eq-line"><span className="eq-label">Safety</span><code>{"∀ concurrent tx: balance ≥ 0"}</code></div>
+            </div>
           </div>
         </div>
       </section>
