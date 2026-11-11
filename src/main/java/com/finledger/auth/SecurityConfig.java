@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/ping").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
                 // Admin only
                 .requestMatchers(HttpMethod.POST, "/api/v1/accounts").hasRole("ADMIN")

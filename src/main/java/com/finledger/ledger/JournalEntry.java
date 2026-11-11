@@ -36,19 +36,28 @@ public class JournalEntry {
     @Column(name = "reverses_journal_id")
     private UUID reversesJournalId;
 
+    @Column(name = "performed_by")
+    private String performedBy;
+
     protected JournalEntry() {
         // required by JPA
     }
 
     public JournalEntry(String reference, JournalType type, String description) {
-        this(reference, type, description, null);
+        this(reference, type, description, null, null);
     }
 
     public JournalEntry(String reference, JournalType type, String description, UUID reversesJournalId) {
+        this(reference, type, description, reversesJournalId, null);
+    }
+
+    public JournalEntry(String reference, JournalType type, String description,
+                         UUID reversesJournalId, String performedBy) {
         this.reference = reference;
         this.type = type;
         this.description = description;
         this.reversesJournalId = reversesJournalId;
+        this.performedBy = performedBy;
     }
 
     public UUID getId() {
@@ -69,5 +78,9 @@ public class JournalEntry {
 
     public UUID getReversesJournalId() {
         return reversesJournalId;
+    }
+
+    public String getPerformedBy() {
+        return performedBy;
     }
 }

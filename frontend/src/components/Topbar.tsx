@@ -21,6 +21,10 @@ export default function Topbar({ page, setPage, totals, invariantPulse, authEmai
           onClick={() => setPage("accounts")}>Accounts</button>
         <button className={`topbar-link ${page === "pipeline" ? "active" : ""}`}
           onClick={() => setPage("pipeline")}>Pipeline</button>
+        {authRole === "ADMIN" && (
+          <button className={`topbar-link ${page === "admin" ? "active" : ""}`}
+            onClick={() => setPage("admin")}>Admin</button>
+        )}
       </div>
       {totals && (
         <div className={`topbar-inv ${invariantPulse ? "pulse" : ""}`}>

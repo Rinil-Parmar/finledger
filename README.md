@@ -132,6 +132,8 @@ All under `http://localhost:8080`.
 | `GET` | `/api/v1/outbox/events` | Inspect outbox events |
 | `GET` | `/api/v1/outbox/consumed` | Events the Kafka consumer received |
 | `GET` | `/api/v1/ledger/totals` | Asset/liability totals with balance check |
+| `GET` | `/api/v1/ledger/audit` | Audit trail - last 50 journals with actor |
+| `GET` | `/swagger-ui.html` | Interactive API documentation |
 
 Most endpoints require a `Authorization: Bearer <token>` header. Auth endpoints (`/auth/*`) are public. Admin-only endpoints: `POST /accounts`, `/outbox/*`, `/reconciliation/*`, `/reversals/*`.
 
@@ -194,6 +196,7 @@ A ready-to-run Postman collection lives in [`postman/`](postman/). Start the app
 | 4 | Compensating reversals, reconciliation engine | Done |
 | 5 | Frontend: multi-page product website with live dashboard | Done |
 | 6 | JWT authentication with RBAC (USER/ADMIN roles) | Done |
+| 7 | Audit trail, admin dashboard, OpenAPI docs, CI/CD, Docker | Done |
 
 ---
 
@@ -203,4 +206,4 @@ See [docs/data-model.md](docs/data-model.md) for the full schema, worked example
 
 ---
 
-Built by **Rinil Parmar** - 30 integration tests, 9 Flyway migrations, 10 ADRs
+Built by **Rinil Parmar** - 30 integration tests, 10 Flyway migrations, 10 ADRs
