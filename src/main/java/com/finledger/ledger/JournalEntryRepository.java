@@ -1,5 +1,6 @@
 package com.finledger.ledger;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,4 +11,6 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, UUID
 
     /** True once a reversal has been posted for this journal (prevents double-reversal). */
     boolean existsByReversesJournalId(UUID reversesJournalId);
+
+    List<JournalEntry> findTop50ByOrderByIdDesc();
 }

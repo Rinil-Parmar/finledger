@@ -875,4 +875,65 @@ body {
   .pipe-g-grid { grid-template-columns: 1fr; }
   .ev-table-header { display: none; }
   .ev-row { grid-template-columns: 1fr; gap: 6px; }
+  .audit-table-header { display: none; }
+  .audit-row { grid-template-columns: 1fr; gap: 6px; }
+  .admin-breakdown-grid { grid-template-columns: repeat(2, 1fr); }
+  .admin-inv-row { flex-wrap: wrap; gap: 12px; }
 }
+
+/* ── Admin page ── */
+.admin-health { margin-bottom: 24px; }
+.admin-health-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 12px; }
+
+.admin-invariant {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 24px; margin-bottom: 24px;
+}
+.admin-inv-row { display: flex; align-items: center; gap: 20px; }
+.admin-inv-side { flex: 1; }
+.admin-inv-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 4px; }
+.admin-inv-val { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+.admin-inv-eq { font-size: 24px; font-weight: 700; color: var(--muted); }
+
+.admin-breakdown { margin-bottom: 24px; }
+.admin-breakdown-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 12px; }
+.admin-breakdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.admin-break-item {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 20px; text-align: center;
+}
+.admin-break-num { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+.admin-break-num.dep { color: var(--green); }
+.admin-break-num.wd { color: var(--red, #ef4444); }
+.admin-break-num.txfr { color: var(--brand); }
+.admin-break-num.rev { color: var(--amber, #f59e0b); }
+.admin-break-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-top: 4px; }
+
+.admin-audit { margin-bottom: 24px; }
+.admin-audit-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.admin-audit-title { font-size: 18px; font-weight: 700; }
+.admin-audit-meta { font-size: 13px; color: var(--muted); }
+
+.audit-table-header {
+  display: grid; grid-template-columns: 180px 100px 1fr 160px;
+  padding: 8px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--muted); border-bottom: 1px solid var(--line);
+}
+.audit-list { display: flex; flex-direction: column; }
+.audit-row {
+  display: grid; grid-template-columns: 180px 100px 1fr 160px;
+  padding: 12px 16px; border-bottom: 1px solid var(--line);
+  font-size: 13px; animation: fadeSlideIn 0.3s ease both;
+}
+.audit-row:hover { background: var(--hover); }
+.audit-ref { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.audit-type {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.audit-type.deposit { color: var(--green); }
+.audit-type.withdrawal { color: var(--red, #ef4444); }
+.audit-type.transfer { color: var(--brand); }
+.audit-type.reversal { color: var(--amber, #f59e0b); }
+.audit-desc { color: var(--fg); }
+.audit-actor-name { font-weight: 600; }
+.audit-actor-system { color: var(--muted); font-style: italic; }

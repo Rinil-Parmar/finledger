@@ -3,6 +3,8 @@ package com.finledger.ledger;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,13 +33,10 @@ public class LedgerService {
         return post(type, description, lines, null);
     }
 
-    /**
-     * Posts a balanced journal, optionally recording that it reverses another journal.
-     * Used by reversals so the new journal links back to the one it compensates.
-     */
     @Transactional
     public JournalEntry post(JournalType type, String description, List<PostingLine> lines,
                              UUID reversesJournalId) {
+        String performedBy = currentUser();
         if (lines == null || lines.size() < 2) {
             throw new IllegalArgumentException("A journal must have at least two entries");
         }
@@ -61,7 +60,7 @@ public class LedgerService {
         }
 
         JournalEntry journal = journals.save(
-                new JournalEntry(newReference(), type, description, reversesJournalId));
+                new JournalEntry(newReference(), type, description, reversesJournalId, performedBy));
         for (PostingLine line : lines) {
             entries.save(new LedgerEntry(
                     journal.getId(), line.ledgerAccountId(), line.direction(), line.amount(), line.currency()));
@@ -77,5 +76,13 @@ public class LedgerService {
 
     private static String newReference() {
         return "jnl_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+    }
+
+    private static String currentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            return (String) auth.getPrincipal();
+        }
+        return null;
     }
 }

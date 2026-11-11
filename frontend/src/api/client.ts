@@ -111,4 +111,14 @@ export const api = {
 
   getConsumedEvents: () =>
     http<string[]>("/outbox/consumed"),
+
+  getAuditLog: () =>
+    http<AuditEntry[]>("/ledger/audit"),
 };
+
+export interface AuditEntry {
+  reference: string;
+  type: string;
+  description: string;
+  performedBy: string | null;
+}

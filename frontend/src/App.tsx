@@ -10,8 +10,9 @@ import Login from "./pages/Login";
 import Accounts from "./pages/Accounts";
 import AccountDetail from "./pages/AccountDetail";
 import Pipeline from "./pages/Pipeline";
+import Admin from "./pages/Admin";
 
-export type Page = "landing" | "accounts" | "account-detail" | "pipeline" | "login";
+export type Page = "landing" | "accounts" | "account-detail" | "pipeline" | "admin" | "login";
 
 export default function App() {
   const [page, setPage] = useState<Page>("landing");
@@ -168,6 +169,7 @@ export default function App() {
         )}
 
         {page === "pipeline" && <Pipeline />}
+        {page === "admin" && <Admin />}
       </main>
     </div>
   );
