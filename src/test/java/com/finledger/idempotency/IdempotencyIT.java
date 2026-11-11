@@ -1,4 +1,4 @@
-package com.finledger.idempotency;
+﻿package com.finledger.idempotency;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,7 +23,7 @@ import org.springframework.http.ResponseEntity;
  * exactly once, reusing a key with a different body is rejected, and the key is required.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class IdempotencyIT {
 
     @Autowired
@@ -108,3 +108,4 @@ class IdempotencyIT {
         return new BigDecimal(r.getBody().get("balance").toString());
     }
 }
+

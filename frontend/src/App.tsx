@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { api } from "./api/client";
+import { api, setToken, getToken, clearToken } from "./api/client";
 import type { Account, Totals, LedgerEntry, OutboxEvent } from "./types";
 
 /* ── helpers ── */
@@ -35,11 +35,61 @@ function timeAgo(iso: string): string {
   return `${Math.floor(s / 3600)}h ago`;
 }
 
-type Page = "landing" | "accounts" | "account-detail" | "pipeline";
+type Page = "landing" | "accounts" | "account-detail" | "pipeline" | "login";
 type ActionTab = "deposit" | "withdraw" | "transfer";
 
 export default function App() {
   const [page, setPage] = useState<Page>("landing");
+  const [authEmail, setAuthEmail] = useState<string | null>(null);
+  const [authRole, setAuthRole] = useState<string | null>(null);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginMode, setLoginMode] = useState<"login" | "register">("login");
+  const [loginRole, setLoginRole] = useState("USER");
+
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.exp * 1000 > Date.now()) {
+          setAuthEmail(payload.sub);
+          setAuthRole(payload.role);
+        } else {
+          clearToken();
+        }
+      } catch { clearToken(); }
+    }
+  }, []);
+
+  function handleLogout() {
+    clearToken();
+    setAuthEmail(null);
+    setAuthRole(null);
+    setPage("landing");
+  }
+
+  async function handleAuth() {
+    setLoading(true); setError(null);
+    try {
+      const res = loginMode === "login"
+        ? await api.login(loginEmail, loginPassword)
+        : await api.register(loginEmail, loginPassword, loginRole);
+      setToken(res.token);
+      setAuthEmail(res.email);
+      setAuthRole(res.role);
+      setLoginEmail(""); setLoginPassword("");
+      setPage("accounts");
+      refresh();
+      showSuccess(loginMode === "login" ? "Logged in" : "Account created");
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+    finally { setLoading(false); }
+  }
+
+  function goToApp() {
+    if (authEmail) { setPage("accounts"); refresh(); }
+    else { setPage("login"); }
+  }
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [totals, setTotals] = useState<Totals | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -124,6 +174,68 @@ export default function App() {
   const consumedSet = new Set(consumedEvents);
 
   /* ═══════════════════════════════════════════
+     LOGIN PAGE
+     ═══════════════════════════════════════════ */
+  if (page === "login") return (
+    <div className="login-page">
+      <div className="login-card">
+        <button className="login-back" onClick={() => setPage("landing")}>&larr; Back</button>
+        <div className="login-logo">FinLedger</div>
+        <h1 className="login-title">{loginMode === "login" ? "Sign in" : "Create account"}</h1>
+        <p className="login-sub">
+          {loginMode === "login"
+            ? "Enter your credentials to access the dashboard"
+            : "Register to start using the ledger system"}
+        </p>
+
+        {error && <div className="login-error">{error}</div>}
+
+        <div className="login-form">
+          <label className="login-label">Email</label>
+          <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)}
+            placeholder="you@example.com" className="login-input"
+            onKeyDown={e => e.key === "Enter" && handleAuth()} />
+
+          <label className="login-label">Password</label>
+          <input type="password" value={loginPassword} onChange={e => setLoginPassword(e.target.value)}
+            placeholder={loginMode === "register" ? "Min 6 characters" : "Your password"} className="login-input"
+            onKeyDown={e => e.key === "Enter" && handleAuth()} />
+
+          {loginMode === "register" && (
+            <>
+              <label className="login-label">Role</label>
+              <div className="login-roles">
+                <button className={`login-role ${loginRole === "USER" ? "active" : ""}`}
+                  onClick={() => setLoginRole("USER")}>
+                  <span className="login-role-name">User</span>
+                  <span className="login-role-desc">View, deposit, withdraw, transfer</span>
+                </button>
+                <button className={`login-role ${loginRole === "ADMIN" ? "active" : ""}`}
+                  onClick={() => setLoginRole("ADMIN")}>
+                  <span className="login-role-name">Admin</span>
+                  <span className="login-role-desc">Full access + create accounts, outbox, recon</span>
+                </button>
+              </div>
+            </>
+          )}
+
+          <button onClick={handleAuth} disabled={loading || !loginEmail || !loginPassword} className="btn-primary login-submit">
+            {loading ? <span className="spinner" /> : loginMode === "login" ? "Sign In" : "Create Account"}
+          </button>
+        </div>
+
+        <div className="login-switch">
+          {loginMode === "login" ? (
+            <>No account? <button onClick={() => { setLoginMode("register"); setError(null); }}>Create one</button></>
+          ) : (
+            <>Have an account? <button onClick={() => { setLoginMode("login"); setError(null); }}>Sign in</button></>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  /* ═══════════════════════════════════════════
      LANDING PAGE
      ═══════════════════════════════════════════ */
   if (page === "landing") return (
@@ -132,9 +244,12 @@ export default function App() {
       <nav className="l-nav">
         <div className="l-logo">FinLedger</div>
         <div className="l-links">
-          <button className="l-link" onClick={() => { setPage("accounts"); refresh(); }}>Dashboard</button>
-          <button className="l-link" onClick={() => setPage("pipeline")}>Pipeline</button>
-          <button className="l-cta" onClick={() => { setPage("accounts"); refresh(); }}>Open App</button>
+          <button className="l-link" onClick={goToApp}>Dashboard</button>
+          <button className="l-link" onClick={() => authEmail ? setPage("pipeline") : setPage("login")}>Pipeline</button>
+          {authEmail
+            ? <button className="l-cta" onClick={handleLogout}>{authEmail.split("@")[0]}</button>
+            : <button className="l-cta" onClick={() => setPage("login")}>Sign In</button>
+          }
         </div>
       </nav>
 
@@ -154,10 +269,10 @@ export default function App() {
             all running on real infrastructure.
           </p>
           <div className="l-actions">
-            <button className="l-primary" onClick={() => { setPage("accounts"); refresh(); }}>
+            <button className="l-primary" onClick={goToApp}>
               Explore Dashboard
             </button>
-            <button className="l-secondary" onClick={() => setPage("pipeline")}>
+            <button className="l-secondary" onClick={() => authEmail ? setPage("pipeline") : setPage("login")}>
               View Pipeline
             </button>
           </div>
@@ -418,6 +533,13 @@ export default function App() {
           <div className={`topbar-inv ${invariantPulse ? "pulse" : ""}`}>
             <AnimatedMoney value={totals.cashPool} /> = <AnimatedMoney value={totals.totalLiabilities} />
             <span className="topbar-badge">{totals.balanced ? "balanced" : "UNBALANCED"}</span>
+          </div>
+        )}
+        {authEmail && (
+          <div className="topbar-user">
+            <span className="topbar-role-badge">{authRole}</span>
+            <span className="topbar-email">{authEmail.split("@")[0]}</span>
+            <button className="topbar-logout" onClick={handleLogout}>Sign out</button>
           </div>
         )}
       </nav>

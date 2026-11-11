@@ -1,4 +1,4 @@
-package com.finledger.cash;
+﻿package com.finledger.cash;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
  * larger than the balance is rejected without changing anything.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class WithdrawalFlowIT {
 
     @Autowired
@@ -67,3 +67,4 @@ class WithdrawalFlowIT {
                 Map.of("amount", new BigDecimal(amount), "currency", "CAD"), Map.class);
     }
 }
+

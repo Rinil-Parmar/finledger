@@ -2,13 +2,44 @@ import type { Account, Totals, MovementResult, TransferResult, LedgerEntry, Outb
 
 const BASE = "/api/v1";
 
+let authToken: string | null = null;
+
+export function setToken(token: string | null) {
+  authToken = token;
+  if (token) {
+    try { localStorage.setItem("finledger_token", token); } catch {}
+  } else {
+    try { localStorage.removeItem("finledger_token"); } catch {}
+  }
+}
+
+export function getToken(): string | null {
+  if (authToken) return authToken;
+  try { authToken = localStorage.getItem("finledger_token"); } catch {}
+  return authToken;
+}
+
+export function clearToken() {
+  authToken = null;
+  try { localStorage.removeItem("finledger_token"); } catch {}
+}
+
 async function http<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
+  const mergedHeaders = { ...headers, ...(init?.headers as Record<string, string> || {}) };
   const res = await fetch(BASE + path, {
-    headers: { "Content-Type": "application/json" },
     ...init,
+    headers: mergedHeaders,
   });
   const text = await res.text();
   if (!res.ok) {
+    if (res.status === 401) {
+      clearToken();
+      throw new Error("Session expired - please log in again");
+    }
     throw new Error(`${res.status}: ${text}`);
   }
   return (text ? JSON.parse(text) : undefined) as T;
@@ -18,7 +49,25 @@ function uuid(): string {
   return crypto.randomUUID();
 }
 
+export interface AuthResponse {
+  token: string;
+  email: string;
+  role: string;
+}
+
 export const api = {
+  register: (email: string, password: string, role = "USER") =>
+    http<AuthResponse>("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ email, password, role }),
+    }),
+
+  login: (email: string, password: string) =>
+    http<AuthResponse>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+
   listAccounts: () => http<Account[]>("/accounts"),
   getTotals: () => http<Totals>("/ledger/totals"),
   createAccount: (ownerName: string, currency = "CAD") =>

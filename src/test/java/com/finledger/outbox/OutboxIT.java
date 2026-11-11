@@ -1,4 +1,4 @@
-package com.finledger.outbox;
+﻿package com.finledger.outbox;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,7 +24,7 @@ import org.springframework.http.ResponseEntity;
  * transaction, and a failed movement writes no event at all (atomicity).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class OutboxIT {
 
     @Autowired
@@ -94,3 +94,4 @@ class OutboxIT {
         return rest.exchange("/api/v1/transfers", HttpMethod.POST, entity, Map.class);
     }
 }
+

@@ -1,4 +1,4 @@
-package com.finledger.reversal;
+﻿package com.finledger.reversal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
  * mirror journal, a journal cannot be reversed twice, and an unknown reference is a 404.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class ReversalIT {
 
     @Autowired
@@ -73,3 +73,4 @@ class ReversalIT {
         return new BigDecimal(r.getBody().get("balance").toString());
     }
 }
+
