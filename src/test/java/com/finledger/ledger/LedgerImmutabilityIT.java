@@ -1,4 +1,4 @@
-package com.finledger.ledger;
+﻿package com.finledger.ledger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -18,7 +18,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * code involved) so the test verifies the database, not our services.
  */
 @SpringBootTest
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class LedgerImmutabilityIT {
 
     @Autowired
@@ -59,3 +59,4 @@ class LedgerImmutabilityIT {
         assertThat(amount).isEqualByComparingTo("100.0000");
     }
 }
+

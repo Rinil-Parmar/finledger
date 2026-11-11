@@ -33,6 +33,10 @@ spring:
 
 # FinLedger-specific settings.
 finledger:
+  jwt:
+    # 256-bit secret for HMAC-SHA256 signing. Override via env var in production.
+    secret: ${JWT_SECRET:finledger-dev-secret-key-change-in-production-min-32-chars!!}
+    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
   outbox:
     topic: finledger.events
     # How often the publisher drains PENDING outbox rows to Kafka.

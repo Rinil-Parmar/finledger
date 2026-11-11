@@ -1,4 +1,4 @@
-package com.finledger.reconciliation;
+﻿package com.finledger.reconciliation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,7 +20,7 @@ import org.springframework.http.ResponseEntity;
  * discrepancy (missing external, missing internal, amount mismatch) is detected and typed.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class ReconciliationIT {
 
     @Autowired
@@ -103,3 +103,4 @@ class ReconciliationIT {
         return (String) b.get("breakType");
     }
 }
+

@@ -20,7 +20,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * global double-entry invariant (total debits == total credits) in the database.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class DepositFlowIT {
 
     @Autowired

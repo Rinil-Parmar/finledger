@@ -1,4 +1,4 @@
-package com.finledger.platform;
+﻿package com.finledger.platform;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
  * the database.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class PingControllerIT {
 
     @Autowired
@@ -36,3 +36,4 @@ class PingControllerIT {
         assertThat(response.getBody().time()).isNotNull();
     }
 }
+

@@ -1,4 +1,4 @@
-package com.finledger.transfer;
+﻿package com.finledger.transfer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,7 +25,7 @@ import org.springframework.http.ResponseEntity;
  * Idempotency-Key, which the API now requires.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class TransferFlowIT {
 
     @Autowired
@@ -96,3 +96,4 @@ class TransferFlowIT {
         return new BigDecimal(r.getBody().get("balance").toString());
     }
 }
+

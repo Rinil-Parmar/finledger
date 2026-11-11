@@ -1,4 +1,4 @@
-package com.finledger.account;
+﻿package com.finledger.account;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,7 +24,7 @@ import org.springframework.http.ResponseEntity;
  * ledger lines, and the assets = liabilities totals.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class UiReadEndpointsIT {
 
     @Autowired
@@ -100,3 +100,4 @@ class UiReadEndpointsIT {
         rest.exchange("/api/v1/transfers", HttpMethod.POST, entity, Map.class);
     }
 }
+

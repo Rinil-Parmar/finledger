@@ -1,4 +1,4 @@
-package com.finledger.outbox;
+﻿package com.finledger.outbox;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -27,7 +27,7 @@ import org.springframework.http.ResponseEntity;
  * consumer receives it. Runs against real PostgreSQL and Kafka containers.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class OutboxPublishingIT {
 
     @Autowired
@@ -80,3 +80,4 @@ class OutboxPublishingIT {
         return rest.exchange("/api/v1/transfers", HttpMethod.POST, entity, Map.class);
     }
 }
+

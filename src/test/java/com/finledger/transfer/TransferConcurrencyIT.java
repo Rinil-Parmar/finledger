@@ -1,4 +1,4 @@
-package com.finledger.transfer;
+﻿package com.finledger.transfer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +29,7 @@ import org.springframework.http.ResponseEntity;
  * once, exactly 10 succeed and 10 are rejected for insufficient funds.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, TestSecurityConfig.class})
 class TransferConcurrencyIT {
 
     @Autowired
@@ -94,3 +94,4 @@ class TransferConcurrencyIT {
         return new BigDecimal(r.getBody().get("balance").toString());
     }
 }
+
