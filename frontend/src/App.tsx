@@ -150,7 +150,7 @@ export default function App() {
           <p className="l-desc">
             A double-entry ledger system built with the same patterns used at
             Wealthsimple, Stripe, and every serious fintech. Append-only journals,
-            idempotent transfers, transactional outbox, and reconciliation &mdash;
+            idempotent transfers, transactional outbox, and reconciliation -
             all running on real infrastructure.
           </p>
           <div className="l-actions">
@@ -203,9 +203,9 @@ export default function App() {
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
             <h3>Append-Only Immutability</h3>
-            <p>No row is ever updated or deleted. Corrections happen through compensating reversals &mdash; a full audit trail forever.</p>
+            <p>No row is ever updated or deleted. Corrections happen through compensating reversals - a full audit trail forever.</p>
             <div className="l-card-eq">
-              <div className="eq-line"><span className="eq-label">Rule</span><code>{"INSERT only — no UPDATE, no DELETE"}</code></div>
+              <div className="eq-line"><span className="eq-label">Rule</span><code>{"INSERT only - no UPDATE, no DELETE"}</code></div>
               <div className="eq-line"><span className="eq-label">Reversal</span><code>{"reverse(tx) → new compensating entry"}</code></div>
             </div>
           </div>
@@ -214,9 +214,9 @@ export default function App() {
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
             </div>
             <h3>Idempotent Transfers</h3>
-            <p>Every transfer carries a unique key. Retry the same request 100 times &mdash; money moves exactly once. No double-spend.</p>
+            <p>Every transfer carries a unique key. Retry the same request 100 times - money moves exactly once. No double-spend.</p>
             <div className="l-card-eq">
-              <div className="eq-line"><span className="eq-label">Property</span><code>{"f(x) = f(f(x))  — exactly-once"}</code></div>
+              <div className="eq-line"><span className="eq-label">Property</span><code>{"f(x) = f(f(x))  - exactly-once"}</code></div>
               <div className="eq-line"><span className="eq-label">SQL</span><code>{"INSERT … ON CONFLICT (key) DO NOTHING"}</code></div>
             </div>
           </div>
@@ -247,7 +247,7 @@ export default function App() {
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             </div>
             <h3>Concurrency Safe</h3>
-            <p>Pessimistic locking with ordered acquisition prevents deadlocks. 20 concurrent transfers &mdash; zero overdrafts.</p>
+            <p>Pessimistic locking with ordered acquisition prevents deadlocks. 20 concurrent transfers - zero overdrafts.</p>
             <div className="l-card-eq">
               <div className="eq-line"><span className="eq-label">Lock</span><code>{"SELECT … FOR UPDATE ORDER BY id"}</code></div>
               <div className="eq-line"><span className="eq-label">Safety</span><code>{"∀ concurrent tx: balance ≥ 0"}</code></div>
@@ -260,7 +260,7 @@ export default function App() {
       <section className="l-banking">
         <div className="l-section-label">How Banks &amp; Fintechs Actually Work</div>
         <p className="l-banking-intro">
-          Every fintech &mdash; Wealthsimple, Groww, Stripe, your bank &mdash; runs a double-entry ledger
+          Every fintech - Wealthsimple, Groww, Stripe, your bank - runs a double-entry ledger
           underneath. Here's what really happens when you move money.
         </p>
 
@@ -271,7 +271,7 @@ export default function App() {
               <span className="l-ex-icon dep">$</span>
               <div>
                 <div className="l-ex-title">Aditi deposits $500 on Wealthsimple</div>
-                <div className="l-ex-sub">Cash enters the system &mdash; two entries are created atomically</div>
+                <div className="l-ex-sub">Cash enters the system - two entries are created atomically</div>
               </div>
             </div>
             <div className="l-ex-ledger">
@@ -300,7 +300,7 @@ export default function App() {
               <span className="l-ex-icon txfr">&harr;</span>
               <div>
                 <div className="l-ex-title">Aditi sends $200 to Rinil via UPI / Interac</div>
-                <div className="l-ex-sub">Money moves between wallets &mdash; cash pool unchanged, four entries total</div>
+                <div className="l-ex-sub">Money moves between wallets - cash pool unchanged, four entries total</div>
               </div>
             </div>
             <div className="l-ex-ledger">
@@ -329,21 +329,21 @@ export default function App() {
               <span className="l-ex-icon stock">&#9650;</span>
               <div>
                 <div className="l-ex-title">Buying 10 shares on Groww / Wealthsimple Trade</div>
-                <div className="l-ex-sub">Same pattern &mdash; cash moves out, securities move in</div>
+                <div className="l-ex-sub">Same pattern - cash moves out, securities move in</div>
               </div>
             </div>
             <div className="l-ex-ledger">
               <div className="l-ex-row">
-                <span className="l-ex-account">Cash Account</span>
+                <span className="l-ex-account">Securities Holding</span>
                 <span className="l-ex-dir debit">DEBIT</span>
                 <span className="l-ex-amt">$1,500.00</span>
-                <span className="l-ex-meaning">Cash leaves the account</span>
+                <span className="l-ex-meaning">10 shares @ $150 acquired</span>
               </div>
               <div className="l-ex-row">
-                <span className="l-ex-account">Securities Holding</span>
+                <span className="l-ex-account">Cash Account</span>
                 <span className="l-ex-dir credit">CREDIT</span>
                 <span className="l-ex-amt">$1,500.00</span>
-                <span className="l-ex-meaning">10 shares @ $150 acquired</span>
+                <span className="l-ex-meaning">Cash leaves the account</span>
               </div>
               <div className="l-ex-invariant">
                 <code>Cash + Securities = Total Holdings</code>
@@ -355,7 +355,7 @@ export default function App() {
 
         <div className="l-banking-footer">
           <strong>FinLedger implements this exact pattern.</strong> Every operation you perform in the dashboard
-          creates real double-entry journal entries &mdash; the same way production fintech systems do.
+          creates real double-entry journal entries - the same way production fintech systems do.
         </div>
       </section>
 
@@ -536,14 +536,14 @@ export default function App() {
                 {actionTab === "transfer" && (
                   <select className="da-select" value={destAccount} onChange={e => setDestAccount(e.target.value)}>
                     <option value="">Select destination...</option>
-                    {others.map(a => <option key={a.externalId} value={a.externalId}>{a.ownerName} &mdash; ${money(a.balance)}</option>)}
+                    {others.map(a => <option key={a.externalId} value={a.externalId}>{a.ownerName} - ${money(a.balance)}</option>)}
                   </select>
                 )}
                 <button onClick={doAction} disabled={loading || !amount} className="btn-primary da-submit">
                   {loading ? <span className="spinner" /> : actionTab === "deposit" ? "Deposit" : actionTab === "withdraw" ? "Withdraw" : "Transfer"}
                 </button>
               </div>
-              {actionTab === "transfer" && <div className="da-hint">Auto-generated idempotency key &mdash; safe to retry</div>}
+              {actionTab === "transfer" && <div className="da-hint">Auto-generated idempotency key - safe to retry</div>}
             </div>
 
             {/* Ledger timeline */}
